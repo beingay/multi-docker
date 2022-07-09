@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t baizhengquan/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run baizhengquan/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t baizhengquan/multi-client ./client
+  - docker build -t baizhengquan/multi-nginx ./nginx
+  - docker build -t baizhengquan/multi-server ./server
+  - docker build -t baizhengquan/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push baizhengquan/multi-client
+  - docker push baizhengquan/multi-nginx
+  - docker push baizhengquan/multi-server
+  - docker push baizhengquan/multi-worker
